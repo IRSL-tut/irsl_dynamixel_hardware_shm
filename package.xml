@@ -17,7 +17,9 @@
   <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
 
   <build_depend>dynamixel_workbench_toolbox</build_depend>
-  
+  <build_depend>irsl_common_utils</build_depend>
+  <build_depend>irsl_realtime_utils</build_depend>
+  <build_depend>irsl_shm_libs</build_depend>
   <export>
     <build_type>cmake</build_type>
   </export>
