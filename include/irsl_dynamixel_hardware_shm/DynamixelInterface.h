@@ -160,7 +160,7 @@ public:
      * @param pos_vec Input: Angle data (Dynamixel raw value)
      * @param pos_float_vec Output: Angle in radians
      */
-    void convertPosition(
+    void convertDyn2FltPosition(
         const std::vector<int32_t> &pos_vec,
         std::vector<irsl_shm_controller::irsl_float_type> &pos_float_vec);
     /**
@@ -169,7 +169,7 @@ public:
      * @param vel_vec Input speed values (Dynamixel raw value)
      * @param vel_float_vec Output speed values in user-defined units
      */
-    void convertVelocity(
+    void convertDyn2FltVelocity(
         const std::vector<int32_t> &vel_vec,
         std::vector<irsl_shm_controller::irsl_float_type> &vel_float_vec);
 
@@ -179,7 +179,7 @@ public:
      * @param cur_vec Input current values (Dynamixel raw value)
      * @param cur_float_vec Output current values in user-defined units
      */
-    void convertCurrent(
+    void convertDyn2FltCurrent(
         const std::vector<int32_t> &cur_vec,
         std::vector<irsl_shm_controller::irsl_float_type> &cur_float_vec);
 
@@ -191,7 +191,7 @@ public:
      * @param cur_vec Input current values (Dynamixel raw value)
      * @param torque_float_vec Output torque values (unit undefined)
      */
-    void convertTorque(
+    void convertDyn2FltTorque(
         const std::vector<int32_t> &cur_vec,
         std::vector<irsl_shm_controller::irsl_float_type> &torque_float_vec);
 
@@ -204,7 +204,7 @@ public:
      * @param pos_float_vec Input: Position command in radians
      * @param dynamixel_position Output: Raw value for the Dynamixel
      */
-    void convertPositionCmd(
+    void convertFlt2DynPosition(
         const std::vector<irsl_shm_controller::irsl_float_type> &pos_float_vec,
         std::vector<int32_t> &dynamixel_position);
 
@@ -227,7 +227,7 @@ public:
      * @param vel_float_vec Input: Velocity command (rad per sec.)
      * @param dynamixel_velocity Output: Raw value for the Dynamixel
      */
-    void convertVelocityCmd(
+    void convertFlt2DynVelocity(
         const std::vector<irsl_shm_controller::irsl_float_type> &vel_float_vec,
         std::vector<int32_t> &dynamixel_velocity);
 

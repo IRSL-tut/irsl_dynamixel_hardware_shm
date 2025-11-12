@@ -4,10 +4,10 @@
 #include "irsl/realtime_task.h"
 #include "irsl/simple_yaml_parser.hpp"
 
-#include "CLI11.hpp"
+#include "irsl/thirdparty/CLI11.hpp"
 
-using namespace irsl_common_utils;
-using namespace irsl_shm_controller;
+namespace icu = irsl_common_utils;
+namespace isc = irsl_shm_controller;
 namespace irt = irsl_realtime_task;
 
 #include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
@@ -16,45 +16,58 @@ namespace irt = irsl_realtime_task;
 #include <unordered_map>
 
 static const std::unordered_map<std::string, int> jointTypeMap = {
-    {"PositionCommand", ShmSettings::JointType::PositionCommand},
-    {"PositionGains", ShmSettings::JointType::PositionGains},
-    {"VelocityCommand", ShmSettings::JointType::VelocityCommand},
-    {"VelocityGains", ShmSettings::JointType::VelocityGains},
-    {"TorqueCommand", ShmSettings::JointType::TorqueCommand},
-    {"TorqueGains", ShmSettings::JointType::TorqueGains},
-    {"MotorTemperature", ShmSettings::JointType::MotorTemperature},
-    {"MotorCurrent", ShmSettings::JointType::MotorCurrent},
+    {"PositionCommand",  isc::ShmSettings::JointType::PositionCommand},
+    {"PositionGains",    isc::ShmSettings::JointType::PositionGains},
+    {"VelocityCommand",  isc::ShmSettings::JointType::VelocityCommand},
+    {"VelocityGains",    isc::ShmSettings::JointType::VelocityGains},
+    {"TorqueCommand",    isc::ShmSettings::JointType::TorqueCommand},
+    {"TorqueGains",      isc::ShmSettings::JointType::TorqueGains},
+    {"MotorTemperature", isc::ShmSettings::JointType::MotorTemperature},
+    {"MotorCurrent",     isc::ShmSettings::JointType::MotorCurrent},
+};
+
+typedef std::vector<isc::irsl_float_type> floatvec;
+typedef std::vector<int32_t>              int32vec;
+
+class OptParse : public CLI::App
+{
+private:
+    uint64_t _hash;
+    uint32_t _key;
+public:
+    OptParse(const std::string name) : CLI::App(name)
+    {
+        add_option("--hash", _hash, "")->default_val("8888");
+        add_option("--shm_key", _key, "")->default_val("8888");
+    }
+    uint64_t getHash() { return _hash; }
+    uint32_t getShmKey() { return _key; }
 };
 
 void status_print(
-    const std::vector<irsl_float_type>& cur_pos_float_vec,
-    const std::vector<irsl_float_type>& cur_vel_float_vec)
+    const floatvec& cur_pos_flt,
+    const floatvec& cur_vel_flt)
 {
-    size_t n = std::min(cur_pos_float_vec.size(), cur_vel_float_vec.size());
+    size_t n = std::min(cur_pos_flt.size(), cur_vel_flt.size());
 
     for (size_t i = 0; i < n; i++)
     {
-        std::cout << i << " "
-                  << cur_pos_float_vec[i] << " "
-                  << cur_vel_float_vec[i] << std::endl;
+        std::cerr << i << " "
+                  << cur_pos_flt[i] << " "
+                  << cur_vel_flt[i] << std::endl;
     }
 }
 
 int main(int argc, char **argv)
 {
     std::string fname;
-    int32_t shm_hash;
-    int32_t shm_key ;
-    std::vector<std::string> joint_types = {"PositionGains", "PositionCommand"};
+    std::vector<std::string> joint_types = {"PositionCommand", "VelocityCommand", "MotorCurrent" }; // "PositionGains", "VelocityGains"
     bool verbose = false;
 
-    CLI::App vm{"Dynamixel controller"};
-    vm.add_option("shm_hash", shm_hash, "sherad memory hash")->default_val("8888");
-    vm.add_option("shm_key", shm_key, "sherad memory key")->default_val("8888");
-    vm.add_option("config_file", fname, "name of input file(.yaml)")->default_val("config.yaml");
-    vm.add_option("--joint_type", joint_types, "Joint types");
-    vm.add_flag("-v,--verbose", verbose, "verbose message");
-    CLI11_PARSE(vm, argc, argv);
+    OptParse op("Dynamixel controller");
+    op.add_option("--config",  fname, "name of input file(.yaml)")->default_val("config.yaml");
+    op.add_flag("-v,--verbose",   verbose, "verbose message");
+    op.parse(argc, argv);
 
     YAML::Node n;
     try
@@ -67,8 +80,7 @@ int main(int argc, char **argv)
         std::cerr << "parameter file [" << fname << "] can not open" << std::endl;
         return false;
     }
-
-    YAML::Node hardware_settings = n[hardware_setings_name];
+    YAML::Node hardware_settings = n[hardware_settings_name];
 
     DynamixelInterface di;
     bool ret;
@@ -78,15 +90,16 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    ShmSettings ss;
-    ss.hash = shm_hash;
-    ss.shm_key = shm_key;
+    isc::ShmSettings ss;
+    ss.hash    = op.getHash();
+    ss.shm_key = op.getShmKey();
 
     ss.numJoints = di.getNumberOfDynamixels();
     ss.numForceSensors = 0;
     ss.numImuSensors = 0;
-    ss.jointType = 0;
 
+    //// TODO shm_libs
+    ss.jointType = 0;
     for (const auto &jtype : joint_types)
     {
         auto it = jointTypeMap.find(jtype);
@@ -95,69 +108,72 @@ int main(int argc, char **argv)
             ss.jointType |= it->second;
         }
     }
-    std::cout << "jointType : " << ss.jointType << std::endl;
+    std::cerr << "jointType : " << ss.jointType << std::endl;
 
-    ShmManager sm(ss);
+    isc::ShmManager sm(ss);
     bool res;
     res = sm.openSharedMemory(true);
-    std::cout << "open: " << res << std::endl;
+    std::cerr << "open: " << res << std::endl;
     if (!res)
     {
         return -1;
     }
 
     res = sm.writeHeader();
-    std::cout << "writeHeader: " << res << std::endl;
+    std::cerr << "writeHeader: " << res << std::endl;
     if (!res)
     {
         return -1;
     }
 
-    std::cout << "isOpen: " << sm.isOpen() << std::endl;
+    res = sm.isOpen();
+    std::cerr << "isOpen: " << res << std::endl;
+    if (!res)
+    {
+        return -1;
+    }
 
     sm.resetFrame();
-    double period_sec = hardware_settings["period"].as<double>();
-    unsigned long interval_us = (unsigned long)(period_sec * 1000000);
+    double period_sec = hardware_settings["period"].as<double>(); // TODO shm_libs
     unsigned long interval_ns = (unsigned long)(period_sec * 1000000000);
 
     size_t joint_num = di.getNumberOfDynamixels();
-    std::vector<int32_t> cur_pos_vec(joint_num);
-    std::vector<int32_t> cur_vel_vec(joint_num);
-    std::vector<int32_t> cur_cur_vec(joint_num);
-    std::vector<irsl_float_type> cur_pos_float_vec(joint_num);
-    std::vector<irsl_float_type> cur_vel_float_vec(joint_num);
-    // std::vector<irsl_float_type> cur_float_vec(joint_num);
-    std::vector<irsl_float_type> cur_torque_float_vec(joint_num);
+    int32vec dyn_pos_cur(joint_num);
+    int32vec dyn_vel_cur(joint_num);
+    int32vec dyn_eff_cur(joint_num);
+    floatvec flt_pos_cur(joint_num);
+    floatvec flt_vel_cur(joint_num);
+    floatvec flt_eff_cur(joint_num);
 
-    std::vector<irsl_float_type> cmd_pos_float_vec(joint_num);
-    std::vector<int32_t> dynamixel_position(joint_num);
+    floatvec flt_pos_cmd(joint_num);
+    int32vec dyn_pos_cmd(joint_num);
 
-    std::vector<irsl_float_type> cmd_vel_float_vec(joint_num);
-    std::vector<int32_t> dynamixel_velocity(joint_num);
+    floatvec flt_vel_cmd(joint_num);
+    int32vec dyn_vel_cmd(joint_num);
 
-    di.getDynamixelCurrentStatus(cur_pos_vec, cur_vel_vec, cur_cur_vec);
+    di.getDynamixelCurrentStatus(dyn_pos_cur, dyn_vel_cur, dyn_eff_cur);
 
-    di.convertPosition(cur_pos_vec, cur_pos_float_vec);
-    di.convertVelocity(cur_vel_vec, cur_vel_float_vec);
-    di.convertTorque(cur_cur_vec, cur_torque_float_vec);
+    di.convertDyn2FltPosition(dyn_pos_cur, flt_pos_cur);
+    di.convertDyn2FltVelocity(dyn_vel_cur, flt_vel_cur);
+    di.convertDyn2FltTorque(dyn_eff_cur, flt_eff_cur);
 
-    sm.writePositionCurrent(cur_pos_float_vec);
-    sm.writeVelocityCurrent(cur_vel_float_vec);
-    sm.writeTorqueCurrent(cur_torque_float_vec);
+    sm.writePositionCurrent(flt_pos_cur);
+    sm.writeVelocityCurrent(flt_vel_cur);
+    sm.writeTorqueCurrent(flt_eff_cur);
 
-    if (ss.jointType & ShmSettings::JointType::PositionCommand)
+    if (ss.jointType & isc::ShmSettings::JointType::PositionCommand)
     {
-        sm.writePositionCommand(cur_pos_float_vec);
+        sm.writePositionCommand(flt_pos_cur);
     }
-    else if (ss.jointType & ShmSettings::JointType::VelocityCommand)
+    else if (ss.jointType & isc::ShmSettings::JointType::VelocityCommand)
     {
-        sm.writeVelocityCommand(cur_vel_float_vec);
+        sm.writeVelocityCommand(flt_vel_cur);
     }
 
-    // sm.writeTorqueCommand(cur_torque_float_vec);
+    // sm.writeTorqueCommand(flt_eff_cur);
     if (verbose)
     {
-        status_print(cur_pos_float_vec, cur_vel_float_vec);
+        status_print(flt_pos_cur, flt_vel_cur);
     }
 
     irt::RealtimeContext rt(interval_ns);
@@ -166,39 +182,39 @@ int main(int argc, char **argv)
     while (true)
     {
         // read current value from Dynamixel
-        di.getDynamixelCurrentStatus(cur_pos_vec, cur_vel_vec, cur_cur_vec);
+        di.getDynamixelCurrentStatus(dyn_pos_cur, dyn_vel_cur, dyn_eff_cur);
+
         // convert to floating value
-        di.convertPosition(cur_pos_vec, cur_pos_float_vec);
-        di.convertVelocity(cur_vel_vec, cur_vel_float_vec);
-        // di.convertCurrent(cur_cur_vec, cur_cur_float_vec);
-        di.convertTorque(cur_cur_vec, cur_torque_float_vec);
+        di.convertDyn2FltPosition(dyn_pos_cur, flt_pos_cur);
+        di.convertDyn2FltVelocity(dyn_vel_cur, flt_vel_cur);
+        di.convertDyn2FltTorque(dyn_eff_cur, flt_eff_cur);
 
         // write to sheread memory
-        sm.writePositionCurrent(cur_pos_float_vec);
-        sm.writeVelocityCurrent(cur_vel_float_vec);
-        sm.writeTorqueCurrent(cur_torque_float_vec);
+        sm.writePositionCurrent(flt_pos_cur);
+        sm.writeVelocityCurrent(flt_vel_cur);
+        sm.writeTorqueCurrent(flt_eff_cur);
 
-        if (ss.jointType & ShmSettings::JointType::PositionCommand)
+        if (ss.jointType & isc::ShmSettings::JointType::PositionCommand)
         {
             // read command value from shered memory
-            sm.readPositionCommand(cmd_pos_float_vec);
+            sm.readPositionCommand(flt_pos_cmd);
             // write comand value to Dynamixel
-            di.convertPositionCmd(cmd_pos_float_vec, dynamixel_position);
-            di.writePosition(dynamixel_position);
+            di.convertFlt2DynPosition(flt_pos_cmd, dyn_pos_cmd);
+            di.writePosition(dyn_pos_cmd);
         }
-        else if (ss.jointType & ShmSettings::JointType::VelocityCommand)
+        else if (ss.jointType & isc::ShmSettings::JointType::VelocityCommand)
         {
             // read command value from shered memory
-            sm.readVelocityCommand(cmd_vel_float_vec);
+            sm.readVelocityCommand(flt_vel_cmd);
             // write comand value to Dynamixel
-            di.convertVelocityCmd(cmd_vel_float_vec, dynamixel_velocity);
-            di.writeVelocity(dynamixel_velocity);
+            di.convertFlt2DynVelocity(flt_vel_cmd, dyn_vel_cmd);
+            di.writeVelocity(dyn_vel_cmd);
         }
 
         if (verbose)
         {
-            status_print(cur_pos_float_vec, cur_vel_float_vec);
-            std::cout << "--------------------" << std::endl;
+            status_print(flt_pos_cur, flt_vel_cur);
+            std::cerr << "--------------------" << std::endl;
         }
 
         cntr++;
@@ -206,7 +222,7 @@ int main(int argc, char **argv)
         sm.incrementFrame();
         if (cntr > 100)
         {
-            std::cout << "max: " << rt.getMaxInterval() << std::endl;
+            std::cerr << "max: " << rt.getMaxInterval() << std::endl;
             rt.reset();
             cntr = 0;
         }

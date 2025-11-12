@@ -1,15 +1,24 @@
+_default_joint: &default_joint
+  DynamixelSettings:
+    { Return_Delay_Time: 0, Operating_Mode: 3 }
+
 dynamixel_hardware_shm:
-  period: 0.01
+## shm-settings
+  ## joint_types: ["", ""]
+  ## priority
+  ## substeps
+  period: 0.01 ## sec
+## dynamixel-settings
   port_name: /dev/ttyUSB0
   baud_rate: 1000000
   joint:
     # LINK_0
-    - { ID: 81, DynamixelSettings: { Return_Delay_Time: 0, Operating_Mode: 3 } }
+    - { ID: 81, <<: *default_joint}
     # LINK_1
-    - { ID: 82, DynamixelSettings: { Return_Delay_Time: 0, Operating_Mode: 3 } }
+    - { ID: 82, <<: *default_joint}
     # LINK_2
-    - { ID: 11, DynamixelSettings: { Return_Delay_Time: 0, Operating_Mode: 3 } }
+    - { ID: 11, <<: *default_joint}
     # LINK_3
-    - { ID: 83, DynamixelSettings: { Return_Delay_Time: 0, Operating_Mode: 3 } }
+    - { ID: 83, <<: *default_joint}
     # LINK_4
-    - { ID: 84, DynamixelSettings: { Return_Delay_Time: 0, Operating_Mode: 3 } }
+    - { ID: 84, <<: *default_joint}

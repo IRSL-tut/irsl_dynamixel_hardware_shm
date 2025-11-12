@@ -3,7 +3,7 @@
 #include "irsl/simple_yaml_parser.hpp"
 using namespace irsl_common_utils;
 
-static const std::string hardware_setings_name = "dynamixel_hardware_shm";
+static const std::string hardware_settings_name = "dynamixel_hardware_shm";
 
 /**
  * @brief ポート・周期などのインタフェース設定

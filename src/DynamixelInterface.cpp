@@ -273,7 +273,7 @@ size_t DynamixelInterface::getNumberOfDynamixels()
     return dx_info.size();
 }
 
-void DynamixelInterface::convertPosition(
+void DynamixelInterface::convertDyn2FltPosition(
     const std::vector<int32_t> &pos_vec,
     std::vector<irsl_shm_controller::irsl_float_type> &pos_float_vec)
 {
@@ -288,7 +288,7 @@ void DynamixelInterface::convertPosition(
     }
 }
 
-void DynamixelInterface::convertVelocity(
+void DynamixelInterface::convertDyn2FltVelocity(
     const std::vector<int32_t> &vel_vec,
     std::vector<irsl_shm_controller::irsl_float_type> &vel_float_vec)
 {
@@ -303,7 +303,7 @@ void DynamixelInterface::convertVelocity(
     }
 }
 
-void DynamixelInterface::convertCurrent(
+void DynamixelInterface::convertDyn2FltCurrent(
     const std::vector<int32_t> &cur_vec,
     std::vector<irsl_shm_controller::irsl_float_type> &cur_float_vec)
 {
@@ -318,7 +318,7 @@ void DynamixelInterface::convertCurrent(
     }
 }
 
-void DynamixelInterface::convertTorque(
+void DynamixelInterface::convertDyn2FltTorque(
     const std::vector<int32_t> &cur_vec,
     std::vector<irsl_shm_controller::irsl_float_type> &torque_float_vec)
 {
@@ -333,7 +333,7 @@ void DynamixelInterface::convertTorque(
     }
 }
 
-void DynamixelInterface::convertPositionCmd(
+void DynamixelInterface::convertFlt2DynPosition(
     const std::vector<irsl_shm_controller::irsl_float_type> &pos_float_vec,
     std::vector<int32_t> &dynamixel_position)
 {
@@ -480,7 +480,7 @@ bool DynamixelInterface::writeVelocity(const std::vector<int32_t> &dynamixel_vel
 // }
 
 
-void DynamixelInterface::convertVelocityCmd(
+void DynamixelInterface::convertFlt2DynVelocity(
     const std::vector<irsl_shm_controller::irsl_float_type> &vel_float_vec,
     std::vector<int32_t> &dynamixel_velocity)
 {
