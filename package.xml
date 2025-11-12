@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>irsl_dynamixel_hardware_shm</name>
+  <version>0.0.1</version>
+  <description>
+    IRSL controller libraryies for using shared-memory
+    dynamixel --
+  </description>
+  <!-- <url type="website">http://github/IRSL-tut/</url> -->
+  <url type="repository">https://github.com/IRSL-tut/irsl_dynamixel_hardware_shm.git</url>
+  <url type="bugtracker">https://github.com/IRSL-tut/irsl_dynamixel_hardware_shm/issues</url>
+
+  <maintainer email="faculty@irsl.eiiris.tut.ac.jp"> IRSL at Toyohashi Tech </maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+
+  <build_depend>dynamixel_workbench_toolbox</build_depend>
+  
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

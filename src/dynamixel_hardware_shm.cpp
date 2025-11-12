@@ -10,8 +10,8 @@ using namespace irsl_common_utils;
 using namespace irsl_shm_controller;
 using namespace irsl_realtime_task;
 
-#include "DynamixelInterface.h"
-#include "common.h"
+#include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
+#include "irsl_dynamixel_hardware_shm/common.h"
 
 #include <unordered_map>
 

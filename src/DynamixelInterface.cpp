@@ -1,4 +1,4 @@
-#include "DynamixelInterface.h"
+#include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
 
 DynamixelInterface::DynamixelInterface()
     : dxl_wb_(std::make_unique<DynamixelWorkbench>())
