@@ -3,18 +3,10 @@
 #include "irsl/shm_controller.h"
 #include "irsl/realtime_task.h"
 #include "irsl/simple_yaml_parser.hpp"
-
 #include "irsl/thirdparty/CLI11.hpp"
 
-namespace icu = irsl_common_utils;
-namespace isc = irsl_shm_controller;
-namespace irt = irsl_realtime_task;
-
-#include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
-#include "irsl_dynamixel_hardware_shm/common.h"
-
+//// TODO: move to common space
 #include <unordered_map>
-
 static const std::unordered_map<std::string, int> jointTypeMap = {
     {"PositionCommand",  isc::ShmSettings::JointType::PositionCommand},
     {"PositionGains",    isc::ShmSettings::JointType::PositionGains},
@@ -25,6 +17,10 @@ static const std::unordered_map<std::string, int> jointTypeMap = {
     {"MotorTemperature", isc::ShmSettings::JointType::MotorTemperature},
     {"MotorCurrent",     isc::ShmSettings::JointType::MotorCurrent},
 };
+
+namespace icu = irsl_common_utils;
+namespace isc = irsl_shm_controller;
+namespace irt = irsl_realtime_task;
 
 typedef std::vector<isc::irsl_float_type> floatvec;
 typedef std::vector<int32_t>              int32vec;
@@ -43,6 +39,10 @@ public:
     uint64_t getHash() { return _hash; }
     uint32_t getShmKey() { return _key; }
 };
+////
+
+#include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
+#include "irsl_dynamixel_hardware_shm/common.h"
 
 void status_print(
     const floatvec& cur_pos_flt,
@@ -65,8 +65,8 @@ int main(int argc, char **argv)
     bool verbose = false;
 
     OptParse op("Dynamixel controller");
-    op.add_option("--config",  fname, "name of input file(.yaml)")->default_val("config.yaml");
-    op.add_flag("-v,--verbose",   verbose, "verbose message");
+    op.add_option("--config", fname, "name of input file(.yaml)")->default_val("config.yaml");
+    op.add_flag("-v,--verbose", verbose, "verbose message");
     op.parse(argc, argv);
 
     YAML::Node n;
@@ -114,13 +114,6 @@ int main(int argc, char **argv)
     bool res;
     res = sm.openSharedMemory(true);
     std::cerr << "open: " << res << std::endl;
-    if (!res)
-    {
-        return -1;
-    }
-
-    res = sm.writeHeader();
-    std::cerr << "writeHeader: " << res << std::endl;
     if (!res)
     {
         return -1;
