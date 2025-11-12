@@ -8,7 +8,7 @@
 
 using namespace irsl_common_utils;
 using namespace irsl_shm_controller;
-using namespace irsl_realtime_task;
+namespace irt = irsl_realtime_task;
 
 #include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
 #include "irsl_dynamixel_hardware_shm/common.h"
@@ -119,10 +119,6 @@ int main(int argc, char **argv)
     double period_sec = hardware_settings["period"].as<double>();
     unsigned long interval_us = (unsigned long)(period_sec * 1000000);
     unsigned long interval_ns = (unsigned long)(period_sec * 1000000000);
-    IntervalStatistics tm(interval_us);
-
-    int cntr = 0;
-    tm.start();
 
     size_t joint_num = di.getNumberOfDynamixels();
     std::vector<int32_t> cur_pos_vec(joint_num);
@@ -164,11 +160,11 @@ int main(int argc, char **argv)
         status_print(cur_pos_float_vec, cur_vel_float_vec);
     }
 
+    irt::RealtimeContext rt(interval_ns);
+    int cntr = 0;
+    rt.start();
     while (true)
     {
-        tm.sleepUntil(interval_ns);
-        tm.sync();
-
         // read current value from Dynamixel
         di.getDynamixelCurrentStatus(cur_pos_vec, cur_vel_vec, cur_cur_vec);
         // convert to floating value
@@ -210,10 +206,11 @@ int main(int argc, char **argv)
         sm.incrementFrame();
         if (cntr > 100)
         {
-            std::cout << "max: " << tm.getMaxInterval() << std::endl;
-            tm.reset();
+            std::cout << "max: " << rt.getMaxInterval() << std::endl;
+            rt.reset();
             cntr = 0;
         }
+        rt.waitNextFrame();
     }
     // polling
 

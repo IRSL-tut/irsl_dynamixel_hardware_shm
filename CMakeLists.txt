@@ -4,7 +4,7 @@ project(irsl_dynamixel_hardware_shm)
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
-find_package(irsl_shm_controller REQUIRED)
+find_package(irsl_shm_libs       REQUIRED)
 find_package(irsl_realtime_utils REQUIRED)
 find_package(irsl_common_utils   REQUIRED)
 #find_package(catkin REQUIRED COMPONENTS
@@ -30,9 +30,18 @@ include_directories(
 add_executable(dynamixel_hardware_shm src/DynamixelInterface.cpp src/dynamixel_hardware_shm.cpp)
 
 target_link_libraries(dynamixel_hardware_shm
-#  ${YAML_CPP_LIBRARIES}
-  irsl_common_utils::irsl_common_utils
-  irsl_realtime_utils::irsl_realtime_utils
+  #  ${YAML_CPP_LIBRARIES}
   irsl_shm_libs::irsl_shm_libs
+  irsl_realtime_utils::irsl_realtime_utils
+  irsl_common_utils::irsl_common_utils
   ${dynamixel_workbench_toolbox_LIBRARIES}
+)
+
+install(TARGETS dynamixel_hardware_shm
+  # EXPORT ${targetname}Targets
+  LIBRARY       DESTINATION lib COMPONENT Runtime
+  ARCHIVE       DESTINATION lib COMPONENT Development
+  RUNTIME       DESTINATION bin COMPONENT Runtime
+  PUBLIC_HEADER DESTINATION include COMPONENT Development
+  BUNDLE        DESTINATION bin COMPONENT Runtime
 )
