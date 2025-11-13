@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>irsl_dynamixel_hardware_shm</name>
-  <version>0.0.1</version>
+  <version>0.99.1</version>
   <description>
     IRSL controller libraryies for using shared-memory
     dynamixel --

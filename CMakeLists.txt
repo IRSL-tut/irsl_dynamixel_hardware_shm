@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(irsl_dynamixel_hardware_shm)
+project(irsl_dynamixel_hardware_shm
+  VERSION 0.99.1
+  LANGUAGES CXX
+)
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
