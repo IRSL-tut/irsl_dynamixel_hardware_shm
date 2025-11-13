@@ -3,7 +3,12 @@
 #include "irsl/shm_controller.h"
 #include "irsl/realtime_task.h"
 #include "irsl/simple_yaml_parser.hpp"
+#include "irsl/signal_handler.h"
 #include "irsl/thirdparty/CLI11.hpp"
+
+namespace icu = irsl_common_utils;
+namespace isc = irsl_shm_controller;
+namespace irt = irsl_realtime_task;
 
 //// TODO: move to common space
 #include <unordered_map>
@@ -17,10 +22,6 @@ static const std::unordered_map<std::string, int> jointTypeMap = {
     {"MotorTemperature", isc::ShmSettings::JointType::MotorTemperature},
     {"MotorCurrent",     isc::ShmSettings::JointType::MotorCurrent},
 };
-
-namespace icu = irsl_common_utils;
-namespace isc = irsl_shm_controller;
-namespace irt = irsl_realtime_task;
 
 typedef std::vector<isc::irsl_float_type> floatvec;
 typedef std::vector<int32_t>              int32vec;
@@ -58,10 +59,17 @@ void status_print(
     }
 }
 
+bool _running_ = true;
+void _sighandle(int sig)
+{
+    _running_ = false;
+}
 int main(int argc, char **argv)
 {
+    setSignalHandler(SIGINT, _sighandle);
+
     std::string fname;
-    std::vector<std::string> joint_types = {"PositionCommand", "VelocityCommand", "MotorCurrent" }; // "PositionGains", "VelocityGains"
+    std::vector<std::string> joint_types = {"PositionCommand", "VelocityCommand" }; // "PositionGains", "VelocityGains"
     bool verbose = false;
 
     OptParse op("Dynamixel controller");
@@ -172,7 +180,7 @@ int main(int argc, char **argv)
     irt::RealtimeContext rt(interval_ns);
     int cntr = 0;
     rt.start();
-    while (true)
+    while (_running_)
     {
         // read current value from Dynamixel
         di.getDynamixelCurrentStatus(dyn_pos_cur, dyn_vel_cur, dyn_eff_cur);
@@ -222,6 +230,6 @@ int main(int argc, char **argv)
         rt.waitNextFrame();
     }
     // polling
-
+    sm.closeSharedMemory();
     return 0;
 }
