@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory> // shared_ptr
 
 #include "irsl/shm_controller.h"
 #include "irsl/realtime_task.h"
@@ -45,6 +46,81 @@ public:
 #include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
 #include "irsl_dynamixel_hardware_shm/common.h"
 
+
+///
+class DynamixelShm
+{
+public:
+    DynamixelShm() {};
+
+public:
+    void intialize(const std::string &yaml_file, int hash, int shm_key)
+    {
+    }
+    void finalize()
+    {
+    }
+
+protected:
+    std::shared_ptr<DynamixelInterface> di;
+    std::shared_ptr<isc::ShmManager> sm;
+    isc::ShmSettings ss;
+    size_t joint_num;
+    int32vec dyn_pos_cur;
+    int32vec dyn_vel_cur;
+    int32vec dyn_eff_cur;
+    floatvec flt_pos_cur;
+    floatvec flt_vel_cur;
+    floatvec flt_eff_cur;
+
+    floatvec flt_pos_cmd;
+    int32vec dyn_pos_cmd;
+    floatvec flt_vel_cmd;
+    int32vec dyn_vel_cmd;
+
+public:
+    void readDx () {
+        // read current value from Dynamixel
+        di->getDynamixelCurrentStatus(dyn_pos_cur, dyn_vel_cur, dyn_eff_cur);
+
+        // convert to floating value
+        di->convertDyn2FltPosition(dyn_pos_cur, flt_pos_cur);
+        di->convertDyn2FltVelocity(dyn_vel_cur, flt_vel_cur);
+        di->convertDyn2FltTorque  (dyn_eff_cur, flt_eff_cur);
+
+        // write to sheread memory
+        sm->writePositionCurrent(flt_pos_cur);
+        sm->writeVelocityCurrent(flt_vel_cur);
+        sm->writeTorqueCurrent  (flt_eff_cur);
+    }
+
+    void initializeCommand () {
+        if (ss.jointType & isc::ShmSettings::JointType::PositionCommand) {
+            sm->writePositionCommand(flt_pos_cur);
+        }
+        else if (ss.jointType & isc::ShmSettings::JointType::VelocityCommand) {
+            sm->writeVelocityCommand(flt_vel_cur);
+        }
+    }
+
+    void writeDx () {
+        if (ss.jointType & isc::ShmSettings::JointType::PositionCommand) {
+            // read command value from shered memory
+            sm->readPositionCommand(flt_pos_cmd);
+            // write comand value to Dynamixel
+            di->convertFlt2DynPosition(flt_pos_cmd, dyn_pos_cmd);
+            di->writePosition(dyn_pos_cmd);
+        } else if (ss.jointType & isc::ShmSettings::JointType::VelocityCommand) {
+            // read command value from shered memory
+            sm->readVelocityCommand(flt_vel_cmd);
+            // write comand value to Dynamixel
+            di->convertFlt2DynVelocity(flt_vel_cmd, dyn_vel_cmd);
+            di->writeVelocity(dyn_vel_cmd);
+        }
+    }
+};
+
+///
 void status_print(
     const floatvec& cur_pos_flt,
     const floatvec& cur_vel_flt)
@@ -126,18 +202,17 @@ int main(int argc, char **argv)
     {
         return -1;
     }
-
     res = sm.isOpen();
     std::cerr << "isOpen: " << res << std::endl;
     if (!res)
     {
         return -1;
     }
-
     sm.resetFrame();
     double period_sec = hardware_settings["period"].as<double>(); // TODO shm_libs
     unsigned long interval_ns = (unsigned long)(period_sec * 1000000000);
 
+    ////
     size_t joint_num = di.getNumberOfDynamixels();
     int32vec dyn_pos_cur(joint_num);
     int32vec dyn_vel_cur(joint_num);
@@ -148,7 +223,6 @@ int main(int argc, char **argv)
 
     floatvec flt_pos_cmd(joint_num);
     int32vec dyn_pos_cmd(joint_num);
-
     floatvec flt_vel_cmd(joint_num);
     int32vec dyn_vel_cmd(joint_num);
 
@@ -156,11 +230,11 @@ int main(int argc, char **argv)
 
     di.convertDyn2FltPosition(dyn_pos_cur, flt_pos_cur);
     di.convertDyn2FltVelocity(dyn_vel_cur, flt_vel_cur);
-    di.convertDyn2FltTorque(dyn_eff_cur, flt_eff_cur);
+    di.convertDyn2FltTorque  (dyn_eff_cur, flt_eff_cur);
 
     sm.writePositionCurrent(flt_pos_cur);
     sm.writeVelocityCurrent(flt_vel_cur);
-    sm.writeTorqueCurrent(flt_eff_cur);
+    sm.writeTorqueCurrent  (flt_eff_cur);
 
     if (ss.jointType & isc::ShmSettings::JointType::PositionCommand)
     {

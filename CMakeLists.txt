@@ -30,10 +30,12 @@ include_directories(
   ${dynamixel_workbench_toolbox_INCLUDE_DIRS}
 )
 
-add_executable(dynamixel_hardware_shm src/DynamixelInterface.cpp src/dynamixel_hardware_shm.cpp)
+add_library(dynamixel_hw_shm SHARED src/dynamixel_hw_shm.cpp src/DynamixelInterface.cpp)
+
+add_executable(dynamixel_hardware_shm src/dynamixel_hardware_shm_main.cpp)
 
 target_link_libraries(dynamixel_hardware_shm
-  #  ${YAML_CPP_LIBRARIES}
+  dynamixel_hw_shm
   irsl_shm_libs::irsl_shm_libs
   irsl_realtime_utils::irsl_realtime_utils
   irsl_common_utils::irsl_common_utils
@@ -48,3 +50,5 @@ install(TARGETS dynamixel_hardware_shm
   PUBLIC_HEADER DESTINATION include COMPONENT Development
   BUNDLE        DESTINATION bin COMPONENT Runtime
 )
+
+## install/inteface
