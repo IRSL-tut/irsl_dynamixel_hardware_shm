@@ -3,12 +3,12 @@
 #include "irsl/simple_yaml_parser.hpp"
 using namespace irsl_common_utils;
 
-static const std::string hardware_settings_name = "dynamixel_hardware_shm";
+static const std::string _DX_HW_CONFIG_ = "dynamixel_hardware_shm";
 
 /**
  * @brief ポート・周期などのインタフェース設定
  */
-struct DynamixelHardwareShm
+struct DxHwConfig
 {
     double period;         ///< 制御周期（秒）
     std::string port_name; ///< デバイス名（例: "/dev/ttyUSB0"）
@@ -19,9 +19,9 @@ namespace YAML
 {
     //// YAML auto conversion
     template <>
-    struct convert<DynamixelHardwareShm>
+    struct convert<DxHwConfig>
     {
-        static inline bool decode(const Node &node, DynamixelHardwareShm &cType)
+        static inline bool decode(const Node &node, DxHwConfig &cType)
         {
             cType.period = node["period"].as<double>();
             cType.port_name = node["port_name"].as<std::string>();
@@ -29,5 +29,4 @@ namespace YAML
             return true;
         }
     };
-
 }

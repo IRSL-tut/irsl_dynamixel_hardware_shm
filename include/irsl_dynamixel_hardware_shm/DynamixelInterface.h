@@ -8,6 +8,8 @@
 #include <memory>
 #include <unordered_map>
 
+namespace irsl_dynamixel {
+
 // SYNC_WRITE_HANDLER
 static constexpr uint8_t SYNC_WRITE_HANDLER_FOR_GOAL_POSITION = 0;
 static constexpr uint8_t SYNC_WRITE_HANDLER_FOR_GOAL_VELOCITY = 1;
@@ -275,3 +277,5 @@ private:
     std::set<std::string> comm_group_names;
     std::map<std::string, std::vector<uint8_t>> comm_group_id_map;
 };
+
+} // namespace

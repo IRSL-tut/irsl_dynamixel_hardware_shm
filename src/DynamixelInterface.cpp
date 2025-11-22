@@ -1,5 +1,7 @@
 #include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
 
+using namespace irsl_dynamixel;
+
 DynamixelInterface::DynamixelInterface()
     : dxl_wb_(std::make_unique<DynamixelWorkbench>())
 {
