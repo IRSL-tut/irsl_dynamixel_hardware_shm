@@ -16,13 +16,14 @@ public:
     DynamixelShm();
 
 public:
-    void intialize(const std::string &yaml_file, int hash, int shm_key);
+    void initialize(const std::string &yaml_file, int hash, int shm_key);
     void finalize();
     void initializeCommand ();
     void readDx ();
     void writeDx ();
 
     double getPeriod() { return period; }
+    void incrementFrame() { sm->incrementFrame(); }
 protected:
     std::shared_ptr<DynamixelInterface> di;
     std::shared_ptr<isc::ShmManager> sm;

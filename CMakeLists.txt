@@ -34,22 +34,38 @@ target_include_directories(dynamixel_hw_shm PUBLIC
   ${dynamixel_workbench_toolbox_INCLUDE_DIRS}
 )
 
-add_executable(dynamixel_hardware_shm src/dynamixel_hardware_shm_main.cpp)
-
+## one-make
+add_executable(dynamixel_hardware_shm src/dynamixel_hardware_shm_main.cpp src/DynamixelInterface.cpp)
 target_include_directories(dynamixel_hardware_shm PRIVATE
   include
   ${dynamixel_workbench_toolbox_INCLUDE_DIRS}
 )
-
 target_link_libraries(dynamixel_hardware_shm
-  dynamixel_hw_shm
   irsl_shm_libs::irsl_shm_libs
   irsl_realtime_utils::irsl_realtime_utils
   irsl_common_utils::irsl_common_utils
   ${dynamixel_workbench_toolbox_LIBRARIES}
 )
-
 install(TARGETS dynamixel_hardware_shm
+  # EXPORT ${targetname}Targets
+  LIBRARY       DESTINATION lib COMPONENT Runtime
+  ARCHIVE       DESTINATION lib COMPONENT Development
+  RUNTIME       DESTINATION bin COMPONENT Runtime
+  PUBLIC_HEADER DESTINATION include COMPONENT Development
+  BUNDLE        DESTINATION bin COMPONENT Runtime
+)
+## use shared-lib
+add_executable(dynamixel_hardware_shm_wlib src/dynamixel_hardware_shm_wlib.cpp)
+target_include_directories(dynamixel_hardware_shm_wlib PRIVATE
+  include
+)
+target_link_libraries(dynamixel_hardware_shm_wlib
+  dynamixel_hw_shm
+  irsl_shm_libs::irsl_shm_libs
+  irsl_realtime_utils::irsl_realtime_utils
+  irsl_common_utils::irsl_common_utils
+)
+install(TARGETS dynamixel_hardware_shm_wlib
   # EXPORT ${targetname}Targets
   LIBRARY       DESTINATION lib COMPONENT Runtime
   ARCHIVE       DESTINATION lib COMPONENT Development

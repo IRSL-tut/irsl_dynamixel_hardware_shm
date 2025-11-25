@@ -9,7 +9,7 @@ namespace irsl_dynamixel {
 
 DynamixelShm::DynamixelShm () {
 }
-void DynamixelShm::intialize (const std::string &yaml_file, int hash, int shm_key) {
+void DynamixelShm::initialize (const std::string &yaml_file, int hash, int shm_key) {
     di = std::shared_ptr<DynamixelInterface>(new DynamixelInterface());
     sm = std::shared_ptr<isc::ShmManager>(new isc::ShmManager());
 
@@ -44,7 +44,7 @@ void DynamixelShm::intialize (const std::string &yaml_file, int hash, int shm_ke
     ss.numImuSensors = 0;
     ss.jointType = isc::ShmSettings::JointType::PositionCommand | isc::ShmSettings::JointType::VelocityCommand;
 
-    // sm->setSettings(ss);
+    sm->setSettings(ss);
 
     bool res_op = sm->openSharedMemory(true);
     if (!res_op) {
