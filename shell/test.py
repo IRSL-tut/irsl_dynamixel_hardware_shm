@@ -1,32 +1,25 @@
 import sys
-sys.path.append("/usr/local/share/irsl_shm_controller")
+install_space = '/usr/local'
+# install_space = '../../../install'
+sys.path.append(f'{intsall_space}/share/irsl_shm_libs')
 
 import irsl_shm
 import numpy as np
 import time
 
-ss = irsl_shm.ShmSettings()
-ss.hash = 8888
-ss.shm_key = 8888
-ss.numJoints = 5
-ss.numForceSensors = 0
-ss.numImuSensors = 0
-ss.jointType = irsl_shm.JointType.PositionCommand | irsl_shm.JointType.PositionGains
-sm = irsl_shm.ShmManager(ss)
+sm_client = irsl_shm.ShmManager()
+sm_client.settings().shm_key = 8888
+sm_client.settings().hash = 8888
+sm_client.openSharedMemory(False)
 
-res = sm.openSharedMemory(False)
-print(res)
-res = sm.checkHeader()
-print(res)
-
-res = sm.isOpen()
+res = sm_client.isOpen()
 print(res)
 
 delta = 0.05
 
 for i in range(100):
-    pos = sm.readPositionCurrent()
-    print(sm.getFrame(), pos)
+    pos = sm_client.readPositionCurrent()
+    print(sm_client.getFrame(), pos)
     for j in range(len(pos)):
         if abs(pos[j]) <= delta:
             pos[j] = 0.0
@@ -35,6 +28,6 @@ for i in range(100):
         else:
             pos[j] += delta
     print(pos)
-    ret = sm.writePositionCommand(pos)
+    ret = sm_client.writePositionCommand(pos)
     print(ret)
     time.sleep(0.01)
