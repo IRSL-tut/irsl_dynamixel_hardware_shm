@@ -32,13 +32,12 @@ target_include_directories(${lib_target} PUBLIC
   $<INSTALL_INTERFACE:include>
   ${dynamixel_workbench_toolbox_INCLUDE_DIRS}
 )
-target_link_libraries(${lib_target} PUBLIC
+target_link_libraries(${lib_target} PRIVATE
   irsl_shm_libs::irsl_shm_libs
   irsl_realtime_utils::irsl_realtime_utils
   irsl_common_utils::irsl_common_utils
   ${dynamixel_workbench_toolbox_LIBRARIES}
 )
-
 
 ### one-make
 add_executable(one_new_exec src/dynamixel_hardware_shm_main_org.cpp src/DynamixelInterface.cpp)
@@ -57,7 +56,7 @@ target_link_libraries(one_new_exec
 )
 # install executable
 install(TARGETS one_new_exec
-  # EXPORT ${targetname}Targets
+  # EXPORT ${lib_target}Targets
   LIBRARY       DESTINATION lib COMPONENT Runtime
   ARCHIVE       DESTINATION lib COMPONENT Development
   RUNTIME       DESTINATION bin COMPONENT Runtime
@@ -80,7 +79,7 @@ target_link_libraries(wlib_new_exec
 )
 # install executable
 install(TARGETS wlib_new_exec
-  # EXPORT ${targetname}Targets
+  # EXPORT ${lib_target}Targets
   LIBRARY       DESTINATION lib COMPONENT Runtime
   ARCHIVE       DESTINATION lib COMPONENT Development
   RUNTIME       DESTINATION bin COMPONENT Runtime
@@ -100,22 +99,22 @@ install(TARGETS ${lib_target}
   LIBRARY       DESTINATION lib COMPONENT Runtime
   ARCHIVE       DESTINATION lib COMPONENT Development
   RUNTIME       DESTINATION bin COMPONENT Runtime
-  PUBLIC_HEADER DESTINATION include COMPONENT Development
+  PUBLIC_HEADER DESTINATION include/irsl_dynamixel_hardware_shm COMPONENT Development
   BUNDLE        DESTINATION bin COMPONENT Runtime
 )
 install(EXPORT irsl-dx-hw-export
-  FILE ${targetname}Config.cmake
-  DESTINATION lib/cmake/${targetname}
-  NAMESPACE ${targetname}::
+  FILE ${lib_target}Config.cmake
+  DESTINATION lib/cmake/${lib_target}
+  NAMESPACE ${lib_target}::
   EXPORT_LINK_INTERFACE_LIBRARIES
 )
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-  "${PROJECT_BINARY_DIR}/${targetname}ConfigVersion.cmake"
+  "${PROJECT_BINARY_DIR}/${lib_target}ConfigVersion.cmake"
   # VERSION 1.0.1
   COMPATIBILITY AnyNewerVersion
 )
-install(FILES "${PROJECT_BINARY_DIR}/${targetname}ConfigVersion.cmake"
-  DESTINATION lib/cmake/${targetname}
+install(FILES "${PROJECT_BINARY_DIR}/${lib_target}ConfigVersion.cmake"
+  DESTINATION lib/cmake/${lib_target}
 )
