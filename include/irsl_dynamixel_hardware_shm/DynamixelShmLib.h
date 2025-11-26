@@ -1,7 +1,7 @@
+#pragma once
+
 #include "irsl/shm_controller.h"
 #include "irsl/simple_yaml_parser.hpp"
-
-#include "irsl_dynamixel_hardware_shm/DynamixelInterface.h"
 
 namespace isc = irsl_shm_controller;
 
@@ -24,8 +24,9 @@ public:
 
     double getPeriod() { return period; }
     void incrementFrame() { sm->incrementFrame(); }
+
+    std::shared_ptr<isc::ShmManager> shm_manager() { return sm; }
 protected:
-    std::shared_ptr<DynamixelInterface> di;
     std::shared_ptr<isc::ShmManager> sm;
     isc::ShmSettings ss;
 
@@ -43,6 +44,12 @@ protected:
     int32vec dyn_pos_cmd;
     floatvec flt_vel_cmd;
     int32vec dyn_vel_cmd;
+
+private:
+    class Impl;
+    Impl *impl;
 };
+
+typedef std::shared_ptr<DynamixelShm> DynamixelShmPtr;
 
 };

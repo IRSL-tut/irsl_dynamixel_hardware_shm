@@ -7,11 +7,20 @@
 
 namespace irsl_dynamixel {
 
+class DynamixelShm::Impl
+{
+public:
+    Impl () {
+        di = std::shared_ptr<DynamixelInterface>(new DynamixelInterface());
+    }
+    std::shared_ptr<DynamixelInterface> di;
+};
+
 DynamixelShm::DynamixelShm () : period(0.01) {
+    impl = new Impl();
 }
 
 void DynamixelShm::initialize (const std::string &yaml_file, int hash, int shm_key) {
-    di = std::shared_ptr<DynamixelInterface>(new DynamixelInterface());
     sm = std::shared_ptr<isc::ShmManager>(new isc::ShmManager());
 
     YAML::Node ynode;
@@ -33,13 +42,13 @@ void DynamixelShm::initialize (const std::string &yaml_file, int hash, int shm_k
 
     irsl_common_utils::readValue(hw_settings, "period", period);
 
-    bool ret = di->initialize(hw_settings);
+    bool ret = impl->di->initialize(hw_settings);
     if (!ret)  {
         throw std::runtime_error("Fail: di->initialize");
     }
     ss.hash    = hash;
     ss.shm_key = shm_key;
-    ss.numJoints = di->getNumberOfDynamixels();
+    ss.numJoints = impl->di->getNumberOfDynamixels();
     ss.numForceSensors = 0;
     ss.numImuSensors = 0;
     ss.jointType = isc::ShmSettings::JointType::PositionCommand | isc::ShmSettings::JointType::VelocityCommand;
@@ -57,7 +66,7 @@ void DynamixelShm::initialize (const std::string &yaml_file, int hash, int shm_k
     //
     sm->resetFrame();
     //
-    joint_num = di->getNumberOfDynamixels();
+    joint_num = impl->di->getNumberOfDynamixels();
     dyn_pos_cur.resize(joint_num);
     dyn_vel_cur.resize(joint_num);
     dyn_eff_cur.resize(joint_num);
@@ -86,12 +95,12 @@ void DynamixelShm::initializeCommand () {
 
 void DynamixelShm::readDx () {
     // read current value from Dynamixel
-    di->getDynamixelCurrentStatus(dyn_pos_cur, dyn_vel_cur, dyn_eff_cur);
+    impl->di->getDynamixelCurrentStatus(dyn_pos_cur, dyn_vel_cur, dyn_eff_cur);
 
     // convert to floating value
-    di->convertDyn2FltPosition(dyn_pos_cur, flt_pos_cur);
-    di->convertDyn2FltVelocity(dyn_vel_cur, flt_vel_cur);
-    di->convertDyn2FltTorque  (dyn_eff_cur, flt_eff_cur);
+    impl->di->convertDyn2FltPosition(dyn_pos_cur, flt_pos_cur);
+    impl->di->convertDyn2FltVelocity(dyn_vel_cur, flt_vel_cur);
+    impl->di->convertDyn2FltTorque  (dyn_eff_cur, flt_eff_cur);
 
     // write to sheread memory
     sm->writePositionCurrent(flt_pos_cur);
@@ -104,14 +113,14 @@ void DynamixelShm::writeDx () {
         // read command value from shered memory
         sm->readPositionCommand(flt_pos_cmd);
         // write comand value to Dynamixel
-        di->convertFlt2DynPosition(flt_pos_cmd, dyn_pos_cmd);
-        di->writePosition(dyn_pos_cmd);
+        impl->di->convertFlt2DynPosition(flt_pos_cmd, dyn_pos_cmd);
+        impl->di->writePosition(dyn_pos_cmd);
     } else if (ss.jointType & isc::ShmSettings::JointType::VelocityCommand) {
         // read command value from shered memory
         sm->readVelocityCommand(flt_vel_cmd);
         // write comand value to Dynamixel
-        di->convertFlt2DynVelocity(flt_vel_cmd, dyn_vel_cmd);
-        di->writeVelocity(dyn_vel_cmd);
+        impl->di->convertFlt2DynVelocity(flt_vel_cmd, dyn_vel_cmd);
+        impl->di->writeVelocity(dyn_vel_cmd);
     }
 }
 
