@@ -1,15 +1,15 @@
 import sys
-install_space = '/usr/local'
-# install_space = '../../../install'
-sys.path.append(f'{intsall_space}/share/irsl_shm_libs')
+#install_space = '/usr/local'
+install_space = '../../../install'
+sys.path.append(f'{install_space}/share/irsl_shm_libs')
 
 import irsl_shm
 import numpy as np
 import time
 
 sm_client = irsl_shm.ShmManager()
-sm_client.settings().shm_key = 8888
-sm_client.settings().hash = 8888
+sm_client.settings().shm_key = 9999
+sm_client.settings().hash = 6666
 sm_client.openSharedMemory(False)
 
 res = sm_client.isOpen()
