@@ -43,7 +43,7 @@ target_link_libraries(${lib_target} PUBLIC
 ### one-make
 add_executable(one_new_exec src/dynamixel_hardware_shm_main_org.cpp src/DynamixelInterface.cpp)
 set_target_properties(one_new_exec PROPERTIES
-    OUTPUT_NAME "dynamixel_hardware_shm_main_org"
+    OUTPUT_NAME "dynamixel_hardware_shm_org"
 )
 target_include_directories(one_new_exec PRIVATE
   include
@@ -66,8 +66,8 @@ install(TARGETS one_new_exec
 )
 ### use shared-lib
 add_executable(wlib_new_exec src/dynamixel_hardware_shm_main.cpp)
-set_target_properties(one_new_exec PROPERTIES
-    OUTPUT_NAME "dynamixel_hardware_shm_main"
+set_target_properties(wlib_new_exec PROPERTIES
+    OUTPUT_NAME "dynamixel_hardware_shm"
 )
 target_include_directories(wlib_new_exec PRIVATE
   include

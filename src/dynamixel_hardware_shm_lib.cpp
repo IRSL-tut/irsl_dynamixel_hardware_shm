@@ -7,8 +7,9 @@
 
 namespace irsl_dynamixel {
 
-DynamixelShm::DynamixelShm () {
+DynamixelShm::DynamixelShm () : period(0.01) {
 }
+
 void DynamixelShm::initialize (const std::string &yaml_file, int hash, int shm_key) {
     di = std::shared_ptr<DynamixelInterface>(new DynamixelInterface());
     sm = std::shared_ptr<isc::ShmManager>(new isc::ShmManager());
@@ -23,16 +24,15 @@ void DynamixelShm::initialize (const std::string &yaml_file, int hash, int shm_k
         throw std::runtime_error(ss.str());
     }
 
-    if ( irsl_common_utils::readValue(ynode, "period", period) ) {
-        period = 0.01;
-    }
-
     if ( !ynode[_DX_HW_CONFIG_] ) {
         std::ostringstream ss;
         ss << "parameter file [" << yaml_file << "] does not contain keyword : " << _DX_HW_CONFIG_;
         throw std::runtime_error(ss.str());
     }
     YAML::Node hw_settings = ynode[_DX_HW_CONFIG_];
+
+    irsl_common_utils::readValue(hw_settings, "period", period);
+
     bool ret = di->initialize(hw_settings);
     if (!ret)  {
         throw std::runtime_error("Fail: di->initialize");
