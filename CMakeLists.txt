@@ -26,6 +26,7 @@ find_package(dynamixel_workbench_toolbox REQUIRED)
 #message("VARIABLES<<<<")
 
 set(lib_target dynamixel_hardware_shm)
+if( NOT "$ENV{ROS_VERSION}"  EQUAL "2" )
 add_library(${lib_target} SHARED src/dynamixel_hardware_shm_lib.cpp src/DynamixelInterface.cpp)
 target_include_directories(${lib_target} PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -38,31 +39,44 @@ target_link_libraries(${lib_target} PRIVATE
   irsl_common_utils::irsl_common_utils
   ${dynamixel_workbench_toolbox_LIBRARIES}
 )
-
-### one-make
-add_executable(one_new_exec src/dynamixel_hardware_shm_main_org.cpp src/DynamixelInterface.cpp)
-set_target_properties(one_new_exec PROPERTIES
-    OUTPUT_NAME "dynamixel_hardware_shm_org"
+else()
+add_library(${lib_target} SHARED src/dynamixel_hardware_shm_lib.cpp src/DynamixelInterface.cpp)
+target_include_directories(${lib_target} PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
-target_include_directories(one_new_exec PRIVATE
-  include
-  ${dynamixel_workbench_toolbox_INCLUDE_DIRS}
-)
-target_link_libraries(one_new_exec
+target_link_libraries(${lib_target} PRIVATE
   irsl_shm_libs::irsl_shm_libs
   irsl_realtime_utils::irsl_realtime_utils
   irsl_common_utils::irsl_common_utils
-  ${dynamixel_workbench_toolbox_LIBRARIES}
+  dynamixel_workbench_toolbox::dynamixel_workbench_toolbox
 )
-# install executable
-install(TARGETS one_new_exec
-  # EXPORT ${lib_target}Targets
-  LIBRARY       DESTINATION lib COMPONENT Runtime
-  ARCHIVE       DESTINATION lib COMPONENT Development
-  RUNTIME       DESTINATION bin COMPONENT Runtime
-  PUBLIC_HEADER DESTINATION include COMPONENT Development
-  BUNDLE        DESTINATION bin COMPONENT Runtime
-)
+endif()
+
+##>### one-make
+##>add_executable(one_new_exec src/dynamixel_hardware_shm_main_org.cpp src/DynamixelInterface.cpp)
+##>set_target_properties(one_new_exec PROPERTIES
+##>    OUTPUT_NAME "dynamixel_hardware_shm_org"
+##>)
+##>target_include_directories(one_new_exec PRIVATE
+##>  include
+##>)
+##>target_link_libraries(one_new_exec
+##>  irsl_shm_libs::irsl_shm_libs
+##>  irsl_realtime_utils::irsl_realtime_utils
+##>  irsl_common_utils::irsl_common_utils
+##>  dynamixel_workbench_toolbox::dynamixel_workbench_toolbox
+##>)
+##># install executable
+##>install(TARGETS one_new_exec
+##>  # EXPORT ${lib_target}Targets
+##>  LIBRARY       DESTINATION lib COMPONENT Runtime
+##>  ARCHIVE       DESTINATION lib COMPONENT Development
+##>  RUNTIME       DESTINATION bin COMPONENT Runtime
+##>  PUBLIC_HEADER DESTINATION include COMPONENT Development
+##>  BUNDLE        DESTINATION bin COMPONENT Runtime
+##>)
+
 ### use shared-lib
 add_executable(wlib_new_exec src/dynamixel_hardware_shm_main.cpp)
 set_target_properties(wlib_new_exec PROPERTIES
